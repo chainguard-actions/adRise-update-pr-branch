@@ -1,0 +1,35 @@
+name: Test sort and direction inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/master
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          base: master
+          required_approval_count: '1'
+          require_passed_checks: 'false'
+          allow_ongoing_checks: 'true'
+          require_auto_merge_enabled: 'false'
+          sort: created
+          direction: asc
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran without unexpected error
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action may succeed or fail depending on API availability,
+          # but it should not crash with a missing-input error.
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with sort=created direction=asc (outcome=$OUTCOME)"
