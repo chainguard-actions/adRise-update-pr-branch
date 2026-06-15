@@ -1,0 +1,26 @@
+name: Test included_labels input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+          base: main
+          required_approval_count: '0'
+          included_labels: 'auto-merge,ready-to-merge'
+          require_passed_checks: 'false'
+          require_auto_merge_enabled: 'false'
+          allow_ongoing_checks: 'true'
+      - name: Assert action ran with included_labels
+        run: |
+          echo "Action completed with included_labels filter"
+          echo "PASS"

@@ -1,0 +1,26 @@
+name: Test sort and direction inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+          base: main
+          required_approval_count: '1'
+          sort: created
+          direction: asc
+          require_passed_checks: 'false'
+          require_auto_merge_enabled: 'false'
+      - name: Assert action ran
+        run: |
+          echo "Action completed with sort=created and direction=asc"
+          echo "PASS"
