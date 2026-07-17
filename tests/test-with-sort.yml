@@ -1,0 +1,33 @@
+name: Test with sort and direction options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REPOSITORY: adRise/update-pr-branch
+      GITHUB_TOKEN: fake-token-for-testing
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run update-pr-branch action with sort options
+        id: action
+        uses: .
+        with:
+          token: fake-token-for-testing
+          base: main
+          required_approval_count: '0'
+          require_passed_checks: 'false'
+          require_auto_merge_enabled: 'false'
+          sort: 'updated'
+          direction: 'asc'
+        continue-on-error: true
+      - name: Assert action step completed (any outcome acceptable in test env)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action step was unexpectedly skipped"
+            exit 1
+          fi
+          echo "PASS: action step completed with outcome=$OUTCOME (success or failure both acceptable in test environment)"

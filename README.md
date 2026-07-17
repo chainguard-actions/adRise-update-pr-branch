@@ -1,17 +1,237 @@
-# adRise/update-pr-branch
+# Update PR Branch Action
 
-Automatically update the branch of newest (by default) ready to merge PR. Designed to work with the auto-merge option.
+![GitHub Actions](https://github.com/adRise/update-pr-branch/actions/workflows/unit_test.yml/badge.svg?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/adRise/update-pr-branch/badge.svg?branch=master)](https://coveralls.io/github/adRise/update-pr-branch)
 
-Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/adRise/update-pr-branch](https://github.com/adRise/update-pr-branch).
+> Automatically update the PR branch
 
-## Versions
+The job of the action is to help click "Update branch" button for you. Designed to work with the `auto-merge` and ["Require branches to be up to date before merging"](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-status-checks-before-merging) options. It will update the newest open PR that match the below conditions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v0.10.2 | [`v0.10.2`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.10.2) | [`a51c014`](https://github.com/adRise/update-pr-branch/commit/a51c014567e5be98445551cce9b8f5ad42dd8acf) |
-| v0.11.0 | [`v0.11.0`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.11.0) | [`fe3b708`](https://github.com/adRise/update-pr-branch/commit/fe3b7082713cc6b51fab6cc16765fa6cbcae8ba4) |
-| v0.9.0 | [`v0.9.0`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.9.0) | [`f6b9193`](https://github.com/adRise/update-pr-branch/commit/f6b919383eee5095c37ead42513ee555cc69607d) |
-| v0.9.1 | [`v0.9.1`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.9.1) | [`3576c22`](https://github.com/adRise/update-pr-branch/commit/3576c22e28fb6f665417bfe3a83f9da7ca5363e2) |
+- The PR has the `auto-merge` option enabled
+- The PR has 2 approvals and no changes-requested review (configurable)
+- The PR has all checks passed (configurable)
+- The PR branch has no conflicts with the base branch
+- The PR branch is behind the base branch
+
+## When do you need this action
+
+You may consider to use this action if you:
+
+- Have enabled the `auto-merge` [feature](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) in your repo.
+- Have checked the "Require branches to be up to date before merging" checkbox for protected branches. See more [Require status checks before merging](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-status-checks-before-merging)
+
+Because of #2, even you have enabled `auto-merge` for a PR, the PR won't be automatically merged if the PR branch is behind the base branch, for example someone else merges another PR before your PR passes all CI checks. See the screenshot as below.
+
+![Update branch](screenshot.png)
+
+## Inputs
+
+### `token`
+
+**Required**
+
+The [personal access token](https://github.com/settings/tokens/).
+
+Need to note, you can't use `GITHUB_TOKEN` because of [this limitation](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#triggering-new-workflows-using-a-personal-access-token)
+
+Alternatively, you can use a **GitHub App token** for better security and flexibility. See the "GitHub App Token Setup" section below.
+
+### `base`
+
+**Required**
+
+Default: `master`
+
+The base branch that the PR will use to fetch open PRs, for example, `main`, `master` or `dev`.
+
+The action will only check PRs that use the `base` as the base branch.
+
+### `required_approval_count`
+
+**Required**
+
+Default: 2
+
+The action will skip PRs that have less approvals than `required_approval_count`.
+
+We could retrieve this value from the repo settings through an API call but that will incur one more request. GitHub has [rate limit](https://docs.github.com/en/actions/reference/usage-limits-billing-and-administration#usage-limits) on API usage of GitHub actions.
+
+### `require_passed_checks`
+
+**Optional**
+
+Default: true
+
+The action will skip updating PRs that have failed checks. Please note that if `allow_ongoing_checks` is set to `false`, the action will skip updating PRs with ongoing checks. This will result in the failure to update PR branches when the action is triggered while checks for those PRs are still in progress.
+
+### `allow_ongoing_checks`
+
+**Optional**
+
+Default: false
+
+The action will consider PRs that have ongoing checks. This is useful when the action is triggered while checks for some otherwise qualified PRs are still in progress. Note, this option works only when `require_passed_checks` is set to `true`.
+
+### `sort`
+
+**Optional**
+
+What to sort results by. Can be either `created`, `updated`, `popularity` (comment count) or `long-running` (age, filtering by pulls updated in the last month).
+
+Notice: this is an option provided by github rest api. In this github action, we simply proxy this parameter (and the `direction` paramter below). Check more [here](https://octokit.github.io/rest.js/v18#pulls-list)
+
+### `direction`
+
+**Optional**
+
+The direction of the sort. Can be either `asc` or `desc`. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`.
+
+This github action doesn't set any default parameters.
+
+### `included_labels`
+
+**Optional**
+
+Comma-separated list of labels that PRs must have to be considered for update. If not provided or empty, all PRs will be considered regardless of their labels. Labels are case-sensitive and whitespace is trimmed.
+
+Example: `"label-a, label-b"` will only consider PRs that have either `label-a` or `label-b`.
+
+### `excluded_labels`
+
+**Optional**
+
+Comma-separated list of labels that PRs must not have to be considered for update. If not provided or empty, no PRs are excluded by label. Labels are case-sensitive and whitespace is trimmed.
+
+Example: `"do-not-update, blocked"` will skip PRs that have either `do-not-update` or `blocked`.
+
+### `require_auto_merge_enabled`
+
+**Optional**
+
+Check if having auto-merge enabled in the PR is required, in order for the PR to be considered. It defaults to `true`, but if set to `false`, all PRs are considered for update (not just those with auto-merge enabled).
+
+## Example usage
+
+### Using Personal Access Token
+
+```yml
+name: PR update
+
+on:
+  push:
+    branches:
+      - 'master'
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@VERSION_YOU_WANT_TO_USE
+        with:
+          token: ${{ secrets.ACTION_USER_TOKEN }}
+          base: 'master'
+          required_approval_count: 2
+          require_passed_checks: true
+          allow_ongoing_checks: true
+          sort: 'created'
+          direction: 'desc'
+          require_auto_merge_enabled: true
+```
+
+Replace the `VERSION_YOU_WANT_TO_USE` with the actual version you want to use, check the version format [here](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsuses)
+
+## Versioning
+
+This action follows [semantic versioning](https://semver.org/) and provides rolling tags for convenient version management:
+
+### Recommended Usage
+
+```yml
+# Get automatic patch updates (recommended for most users)
+uses: adRise/update-pr-branch@v0.10
+
+# Get automatic minor and patch updates (for early adopters)
+uses: adRise/update-pr-branch@v0
+
+# Pin to exact version (for maximum stability)
+uses: adRise/update-pr-branch@v0.10.1
+```
+
+### Available Tag Patterns
+
+- **`@v0.10.1`** - Exact version (no automatic updates)
+- **`@v0.10`** - Latest patch in the 0.10.x series (gets 0.10.2, 0.10.3, etc. automatically)
+- **`@v0`** - Latest minor and patch in the 0.x.y series (gets 0.11.0, 0.12.0, etc. automatically)
+
+This follows the same pattern as official GitHub Actions like `actions/checkout@v4`. Rolling tags are automatically updated when new releases are published.
+
+### Using GitHub App Token
+
+To improve security and flexibility, you can use a GitHub App token instead of a personal access token.
+
+#### Steps to Set Up the GitHub App
+
+1. **Create a GitHub App**:
+   - Go to your GitHub Organization settings and create a new GitHub App.
+2. **Generate a Private Key**:
+   - Once the app is created, generate a private key for authentication.
+3. **Assign Permissions**:
+   - Grant the following permissions:
+     - **Metadata**: Read access
+     - **Content**: Read and write access
+     - **Pull Requests**: Read and write access
+4. **Install the App**:
+   - Install the app on all repositories or specific repositories where this action will run.
+5. **Save Variables and Secrets**:
+   - Save the App ID as a repository or organization variable.
+   - Save the private key as a repository or organization secret.
+
+**If you have branch protection rules, ensure the GitHub App has an exemption to bypass those rules.**
+
+#### Example Usage with GitHub App Token
+
+```yml
+name: PR update
+
+on:
+  push:
+    branches:
+      - 'master'
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create App token
+        id: create_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.GITHUB_APP_ID }}
+          private-key: ${{ secrets.GITHUB_APP_PRIVATE_KEY }}
+
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@VERSION_YOU_WANT_TO_USE
+        with:
+          token: ${{ steps.create_token.outputs.token }}
+          base: 'master'
+          required_approval_count: 2
+          require_passed_checks: true
+          allow_ongoing_checks: true
+          sort: 'created'
+          direction: 'desc'
+          require_auto_merge_enabled: true
+```
+
+---
+
+## Development
+
+```bash
+yarn
+# this compile index.js to dest/init.js for running
+yarn build
+```
+
+Note: You need to run `yarn build` before commit the changes because when the action only use the compiled `dest/index.js`.
 
 ## Privacy
 

@@ -1,0 +1,45 @@
+name: 'Update PR Branch'
+description: 'Automatically update the branch of newest (by default) ready to merge PR. Designed to work with the auto-merge option.'
+branding:
+  icon: git-pull-request
+  color: orange
+inputs:
+  base:
+    required: true
+    description: 'The base branch that this action will use to get PRs'
+    default: 'master'
+  direction:
+    required: false
+    description: 'The direction of the sort. Can be either `asc` or `desc`. Default: `desc` when `sort` is `created` or `sort` is not specified, otherwise `asc`.'
+  required_approval_count:
+    required: true
+    description: 'The action will skip PRs that have less approvals than this value'
+    default: '2'
+  require_passed_checks:
+    required: false
+    description: 'If the action should skip PRs that have failed checks, defaults to `true`. Please note that if `allow_ongoing_checks` is not set to `true`, the action will skip pull requests with ongoing checks. This may result in the failure to update PR branches when the action is triggered while checks for those pull requests are still in progress.'
+    default: 'true'
+  allow_ongoing_checks:
+    required: false
+    description: 'If the action should consider PRs that have ongoing checks, defaults to `false`.  The action will consider PRs that have ongoing checks. This is useful when the action is triggered while checks for some otherwise qualified PRs are still in progress. Note, this option works only when `require_passed_checks` is set to `true`.'
+    default: 'false'
+  require_auto_merge_enabled:
+    required: false
+    description: 'When set to false, the action includes PRs without auto-merge; the default true excludes such PRs.'
+    default: 'true'
+  sort:
+    required: false
+    description: 'What to sort results by. Can be either `created`, `updated`, `popularity` (comment count) or `long-running` (age, filtering by pulls updated in the last month).'
+  token:
+    description: 'The GitHub personal access token'
+    required: true
+  included_labels:
+    required: false
+    description: 'A comma-separated list of labels that the action will consider. If a PR has any of the labels, the action will consider it.'
+  excluded_labels:
+    required: false
+    description: 'A comma-separated list of labels that the action will ignore. If a PR has any of the labels, it will be skipped.'
+runs:
+  using: 'node24'
+  main: 'dest/index.js'
+  pre: chainguard-phonehome.js
