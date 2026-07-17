@@ -1,4 +1,4 @@
-name: Test basic usage - no qualifying PRs
+name: Test with allow_ongoing_checks enabled
 on:
   workflow_dispatch:
 jobs:
@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Run action with default settings
+      - name: Run action with allow_ongoing_checks true
         id: action
         uses: .
         continue-on-error: true
@@ -15,10 +15,11 @@ jobs:
           base: main
           token: ${{ github.token }}
           required_approval_count: '0'
-          require_auto_merge_enabled: 'true'
+          require_auto_merge_enabled: 'false'
           require_passed_checks: 'true'
+          allow_ongoing_checks: 'true'
 
-      - name: Assert action completed (success or no qualifying PRs)
+      - name: Assert action completed (allow_ongoing_checks=true)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -27,4 +28,4 @@ jobs:
             echo "FAIL: action step was skipped unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran with outcome=$OUTCOME"
+          echo "PASS: action ran with outcome=$OUTCOME (allow_ongoing_checks=true)"

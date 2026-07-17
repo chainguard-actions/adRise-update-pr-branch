@@ -1,4 +1,4 @@
-name: Test basic usage - no qualifying PRs
+name: Test with non-existent base branch
 on:
   workflow_dispatch:
 jobs:
@@ -7,18 +7,18 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Run action with default settings
+      - name: Run action with non-existent base branch
         id: action
         uses: .
         continue-on-error: true
         with:
-          base: main
+          base: this-branch-does-not-exist-xyz-12345
           token: ${{ github.token }}
           required_approval_count: '0'
-          require_auto_merge_enabled: 'true'
-          require_passed_checks: 'true'
+          require_auto_merge_enabled: 'false'
+          require_passed_checks: 'false'
 
-      - name: Assert action completed (success or no qualifying PRs)
+      - name: Assert action completed (non-existent base branch returns no PRs)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -27,4 +27,4 @@ jobs:
             echo "FAIL: action step was skipped unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran with outcome=$OUTCOME"
+          echo "PASS: action ran with outcome=$OUTCOME (non-existent base branch)"

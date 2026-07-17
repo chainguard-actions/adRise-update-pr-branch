@@ -1,4 +1,4 @@
-name: Test sort and direction inputs
+name: Test high approval count - no PRs should match
 on:
   workflow_dispatch:
 jobs:
@@ -6,19 +6,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Test action with sort and direction inputs
+      - name: Test action with high approval count (no PRs should match)
         id: action
         uses: .
         with:
           token: ${{ github.token }}
           base: main
-          required_approval_count: '0'
+          required_approval_count: '999'
           require_passed_checks: 'false'
           require_auto_merge_enabled: 'false'
-          sort: 'created'
-          direction: 'asc'
         continue-on-error: true
-      - name: Assert action completed with sort/direction inputs
+      - name: Assert action completed gracefully
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
