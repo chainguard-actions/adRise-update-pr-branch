@@ -10,6 +10,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 |---------|-----|-----------------|
 | v0.10.2 | [`v0.10.2`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.10.2) | [`a51c014`](https://github.com/adRise/update-pr-branch/commit/a51c014567e5be98445551cce9b8f5ad42dd8acf) |
 | v0.11.0 | [`v0.11.0`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.11.0) | [`fe3b708`](https://github.com/adRise/update-pr-branch/commit/fe3b7082713cc6b51fab6cc16765fa6cbcae8ba4) |
+| v0.11.1 | [`v0.11.1`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.11.1) | [`e96e796`](https://github.com/adRise/update-pr-branch/commit/e96e796f4ab23ab388016fdaed7092de99bd71cf) |
 | v0.9.0 | [`v0.9.0`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.9.0) | [`f6b9193`](https://github.com/adRise/update-pr-branch/commit/f6b919383eee5095c37ead42513ee555cc69607d) |
 | v0.9.1 | [`v0.9.1`](https://github.com/chainguard-actions/adRise-update-pr-branch/tree/v0.9.1) | [`3576c22`](https://github.com/adRise/update-pr-branch/commit/3576c22e28fb6f665417bfe3a83f9da7ca5363e2) |
 
