@@ -1,0 +1,26 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
+      - run: npm install
+      - name: lint
+        run: yarn lint
+      - name: run unit test
+        run: yarn test
+      - name: Coveralls
+        uses: coverallsapp/github-action@8cbef1dea373ebce56de0a14c68d6267baa10b44 # v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

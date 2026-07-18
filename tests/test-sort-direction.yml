@@ -4,30 +4,29 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/master
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+      - name: Run update-pr-branch with sort=updated direction=asc
+        id: action
         uses: .
-        continue-on-error: true
         with:
-          token: fake-token-for-testing
-          base: master
-          required_approval_count: '1'
-          sort: created
-          direction: asc
+          token: ${{ github.token }}
+          base: main
+          required_approval_count: '0'
           require_auto_merge_enabled: 'false'
-      - name: Assert action ran with sort and direction inputs
+          require_passed_checks: 'false'
+          sort: updated
+          direction: asc
+        continue-on-error: true
+      - name: Assert action completed with sort/direction inputs
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
-          echo "outcome: $OUTCOME"
-          # The action is expected to fail with a fake token (API auth error)
-          # but it must have at least started (not a setup/config error)
-          if [ "$OUTCOME" = "skipped" ]; then
-            echo "FAIL: action was skipped, expected it to run"
+          echo "action outcome: $OUTCOME"
+          # The action either succeeds (no PRs to update) or fails (API error).
+          # Both success and failure are acceptable — we only reject cancelled/skipped.
+          if [ "$OUTCOME" = "cancelled" ] || [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was unexpectedly $OUTCOME"
             exit 1
           fi
-          echo "PASS: action ran with sort and direction inputs (outcome=$OUTCOME)"
+          echo "PASS: action completed with outcome=$OUTCOME"

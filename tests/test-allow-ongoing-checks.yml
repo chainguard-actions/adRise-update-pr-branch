@@ -1,4 +1,4 @@
-name: Test basic usage - update PR branch
+name: Test allow_ongoing_checks input
 on:
   workflow_dispatch:
 jobs:
@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run update-pr-branch action with default base branch
+      - name: Run update-pr-branch with allow_ongoing_checks=true
         id: action
         uses: .
         with:
@@ -14,15 +14,16 @@ jobs:
           base: main
           required_approval_count: '0'
           require_auto_merge_enabled: 'false'
-          require_passed_checks: 'false'
+          require_passed_checks: 'true'
+          allow_ongoing_checks: 'true'
         continue-on-error: true
-      - name: Assert action completed (success or expected no-PR failure)
+      - name: Assert action completed with allow_ongoing_checks=true
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "action outcome: $OUTCOME"
-          # The action either succeeds (no PRs to update) or fails (API error).
-          # Both success and failure are acceptable — we only reject a cancelled/skipped step.
+          # The action either succeeds (no PRs to update) or fails (API/check error).
+          # Both success and failure are acceptable — we only reject cancelled/skipped.
           if [ "$OUTCOME" = "cancelled" ] || [ "$OUTCOME" = "skipped" ]; then
             echo "FAIL: action was unexpectedly $OUTCOME"
             exit 1
