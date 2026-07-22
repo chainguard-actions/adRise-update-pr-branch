@@ -1,4 +1,4 @@
-name: Test with allow_ongoing_checks and sort options
+name: Test with master base branch and updated sort
 on:
   workflow_dispatch:
 jobs:
@@ -7,22 +7,20 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Run update-pr-branch action with ongoing checks allowed and sort options
+      - name: Run update-pr-branch action with master base and updated sort
         id: action
         uses: .
         continue-on-error: true
         with:
-          base: main
+          base: master
           token: ${{ github.token }}
           required_approval_count: '999'
-          require_passed_checks: 'true'
-          allow_ongoing_checks: 'true'
+          require_passed_checks: 'false'
           require_auto_merge_enabled: 'false'
-          sort: 'created'
-          direction: 'asc'
-        # required_approval_count: 999 ensures no PR will qualify,
-        # so the action should exit successfully with "No applicable PR to update."
-        # Tests that the action accepts all optional inputs without error.
+          sort: 'updated'
+          direction: 'desc'
+        # Tests the default base branch 'master' and sort by 'updated' descending.
+        # required_approval_count: 999 ensures no PR will qualify.
         # continue-on-error: true handles cases where the action fails due to API issues.
 
       - name: Assert action completed (success or expected failure)

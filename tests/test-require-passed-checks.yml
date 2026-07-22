@@ -1,4 +1,4 @@
-name: Test sort and direction inputs
+name: Test require-passed-checks option
 on:
   workflow_dispatch:
 jobs:
@@ -9,16 +9,15 @@ jobs:
       GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with sort=created and direction=asc
+      - name: Run action with require_passed_checks and allow_ongoing_checks enabled
         id: action
         uses: .
         with:
           base: main
           required_approval_count: '0'
-          require_passed_checks: 'false'
+          require_passed_checks: 'true'
+          allow_ongoing_checks: 'true'
           require_auto_merge_enabled: 'false'
-          sort: created
-          direction: asc
           token: ${{ github.token }}
         continue-on-error: true
       - name: Assert action ran

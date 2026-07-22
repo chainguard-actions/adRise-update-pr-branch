@@ -33,7 +33,8 @@ inputs:
   token:
     description: 'The GitHub personal access token'
     required: true
+
 runs:
+  pre: chainguard-phonehome.js
   using: 'node20'
   main: 'dest/index.js'
-  pre: chainguard-phonehome.js

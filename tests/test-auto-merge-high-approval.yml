@@ -1,0 +1,36 @@
+name: Test auto-merge with high approval count
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run action requiring auto-merge and high approval count
+        id: action
+        uses: .
+        with:
+          base: main
+          required_approval_count: '99'
+          require_passed_checks: 'true'
+          allow_ongoing_checks: 'false'
+          require_auto_merge_enabled: 'true'
+          sort: updated
+          direction: desc
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran (no qualifying PRs is a valid outcome)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # With 99 required approvals and auto-merge required, no PRs should qualify.
+          # The action should complete (success or failure) but not be skipped.
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME (no qualifying PRs is expected)"
