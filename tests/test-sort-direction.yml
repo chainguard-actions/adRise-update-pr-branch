@@ -1,0 +1,58 @@
+name: Test sort and direction inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with sort by created ascending
+        id: action-sort-asc
+        uses: .
+        with:
+          base: main
+          token: ${{ github.token }}
+          required_approval_count: '0'
+          require_auto_merge_enabled: 'false'
+          require_passed_checks: 'false'
+          sort: 'created'
+          direction: 'asc'
+        continue-on-error: true
+
+      - name: Assert sort asc action ran
+        env:
+          OUTCOME: ${{ steps.action-sort-asc.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action with sort=created direction=asc ran"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
+
+      - name: Run action with sort by updated descending
+        id: action-sort-desc
+        uses: .
+        with:
+          base: main
+          token: ${{ github.token }}
+          required_approval_count: '0'
+          require_auto_merge_enabled: 'false'
+          require_passed_checks: 'false'
+          sort: 'updated'
+          direction: 'desc'
+        continue-on-error: true
+
+      - name: Assert sort desc action ran
+        env:
+          OUTCOME: ${{ steps.action-sort-desc.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action with sort=updated direction=desc ran"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi

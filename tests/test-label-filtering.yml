@@ -1,0 +1,56 @@
+name: Test label filtering inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with excluded labels
+        id: action-excluded
+        uses: .
+        with:
+          base: main
+          token: ${{ github.token }}
+          required_approval_count: '0'
+          require_auto_merge_enabled: 'false'
+          require_passed_checks: 'false'
+          excluded_labels: 'do-not-merge,wip,hold'
+        continue-on-error: true
+
+      - name: Assert excluded labels action ran
+        env:
+          OUTCOME: ${{ steps.action-excluded.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action with excluded_labels ran and produced an outcome"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
+
+      - name: Run action with included labels
+        id: action-included
+        uses: .
+        with:
+          base: main
+          token: ${{ github.token }}
+          required_approval_count: '0'
+          require_auto_merge_enabled: 'false'
+          require_passed_checks: 'false'
+          included_labels: 'ready-to-merge,automerge'
+        continue-on-error: true
+
+      - name: Assert included labels action ran
+        env:
+          OUTCOME: ${{ steps.action-included.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action with included_labels ran and produced an outcome"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi

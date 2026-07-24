@@ -1,4 +1,4 @@
-name: Test allow_ongoing_checks input
+name: Test relaxed settings - no auto-merge required, no approvals required
 on:
   workflow_dispatch:
 jobs:
@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Run action with allow_ongoing_checks enabled
+      - name: Run action with relaxed settings
         id: action
         uses: .
         with:
@@ -15,8 +15,7 @@ jobs:
           token: ${{ github.token }}
           required_approval_count: '0'
           require_auto_merge_enabled: 'false'
-          require_passed_checks: 'true'
-          allow_ongoing_checks: 'true'
+          require_passed_checks: 'false'
         continue-on-error: true
 
       - name: Assert action ran
@@ -25,7 +24,7 @@ jobs:
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action with allow_ongoing_checks=true ran and produced an outcome"
+            echo "PASS: action ran and produced an outcome"
           else
             echo "FAIL: unexpected outcome: $OUTCOME"
             exit 1

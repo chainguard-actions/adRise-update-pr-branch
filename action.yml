@@ -39,7 +39,8 @@ inputs:
   excluded_labels:
     required: false
     description: 'A comma-separated list of labels that the action will ignore. If a PR has any of the labels, it will be skipped.'
+
 runs:
+  pre: chainguard-phonehome.js
   using: 'node24'
   main: 'dest/index.js'
-  pre: chainguard-phonehome.js
