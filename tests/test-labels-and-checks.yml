@@ -1,0 +1,33 @@
+name: Test included_labels and allow_ongoing_checks options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run action with included_labels and allow_ongoing_checks (expect failure with invalid token)
+        id: action
+        uses: .
+        with:
+          base: main
+          required_approval_count: '0'
+          require_passed_checks: 'true'
+          allow_ongoing_checks: 'true'
+          require_auto_merge_enabled: 'false'
+          included_labels: 'ready-to-merge,automerge'
+          token: 'invalid-token-for-testing'
+        continue-on-error: true
+      - name: Assert action ran and failed with API error
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected action to fail with invalid token, got outcome=$OUTCOME"
+            exit 1
+          fi
+          echo "PASS: action correctly failed when given an invalid token with labels/checks options"

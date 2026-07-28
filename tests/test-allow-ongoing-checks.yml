@@ -1,4 +1,4 @@
-name: Test basic usage
+name: Test allow ongoing checks option
 on:
   workflow_dispatch:
 jobs:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - id: action
-        name: Run update-pr-branch with high approval count (no PR should be updated)
+        name: Run update-pr-branch with allow_ongoing_checks
         uses: .
         continue-on-error: true
         with:
@@ -19,14 +19,17 @@ jobs:
           token: ${{ github.token }}
           required_approval_count: '999'
           require_auto_merge_enabled: 'false'
-          require_passed_checks: 'false'
+          require_passed_checks: 'true'
+          allow_ongoing_checks: 'true'
       - name: Assert action ran and completed
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "action outcome: $OUTCOME"
-          # The action should complete (success = no eligible PRs, failure = API/config issue)
-          # Either is acceptable — we just verify the action ran without hanging or crashing the runner
+          # With allow_ongoing_checks=true and require_passed_checks=true,
+          # the action skips PRs with failed checks but allows those with ongoing checks.
+          # With required_approval_count=999, no PR should be updated.
+          # Either success or failure is acceptable — we verify the action ran.
           if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action completed with outcome: $OUTCOME"
           else
